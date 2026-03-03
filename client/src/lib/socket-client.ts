@@ -1,8 +1,5 @@
 import { io, type Socket } from 'socket.io-client';
-import {
-  type ClientToServerEvents,
-  type ServerToClientEvents,
-} from '../../../shared/types/ws-events';
+import { type ClientToServerEvents, type ServerToClientEvents } from '../../../shared/types';
 import { WS_URL } from '../constants';
 
 type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -14,7 +11,7 @@ interface SocketAuth {
 
 let socket: TypedSocket | null = null;
 
-export const getSocket = (auth: SocketAuth): TypedSocket => {
+const getSocket = (auth: SocketAuth): TypedSocket => {
   if (socket?.connected) {
     return socket;
   }
@@ -26,9 +23,12 @@ export const getSocket = (auth: SocketAuth): TypedSocket => {
   return socket;
 };
 
-export const disconnectSocket = (): void => {
+const disconnectSocket = (): void => {
   if (socket) {
     socket.disconnect();
     socket = null;
   }
 };
+
+export { getSocket, disconnectSocket };
+export type { TypedSocket, SocketAuth };

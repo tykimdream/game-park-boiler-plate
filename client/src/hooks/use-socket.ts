@@ -1,34 +1,59 @@
-import { useEffect, useRef, useState } from 'react';
-import { type Socket } from 'socket.io-client';
+import { useEffect, useState } from 'react';
 import {
-  type ClientToServerEvents,
-  type ServerToClientEvents,
-} from '../../../shared/types/ws-events';
-import { disconnectSocket, getSocket } from '../lib/socket-client';
+  type TypedSocket,
+  type SocketAuth,
+  getSocket,
+  disconnectSocket,
+} from '../lib/socket-client';
 
-type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
-
-interface UseSocketOptions {
-  userId: string;
-  nickname: string;
+interface UseSocketReturn {
+  socket: TypedSocket | null;
+  isConnected: boolean;
 }
 
-export const useSocket = ({ userId, nickname }: UseSocketOptions) => {
+const useSocket = (auth: SocketAuth | null): UseSocketReturn => {
+  const [socket, setSocket] = useState<TypedSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const socketRef = useRef<TypedSocket | null>(null);
 
   useEffect(() => {
-    const socket = getSocket({ userId, nickname });
-    socketRef.current = socket;
+    if (!auth) {
+      return;
+    }
 
-    socket.on('connect', () => setIsConnected(true));
-    socket.on('disconnect', () => setIsConnected(false));
+    const s = getSocket(auth);
+    setSocket(s);
 
-    return () => {
-      disconnectSocket();
+    const handleConnect = () => {
+      setIsConnected(true);
+    };
+
+    const handleDisconnect = () => {
       setIsConnected(false);
     };
-  }, [userId, nickname]);
 
-  return { socket: socketRef.current, isConnected };
+    const handleConnectError = () => {
+      setIsConnected(false);
+    };
+
+    s.on('connect', handleConnect);
+    s.on('disconnect', handleDisconnect);
+    s.on('connect_error', handleConnectError);
+
+    if (s.connected) {
+      setIsConnected(true);
+    }
+
+    return () => {
+      s.off('connect', handleConnect);
+      s.off('disconnect', handleDisconnect);
+      s.off('connect_error', handleConnectError);
+      disconnectSocket();
+      setSocket(null);
+      setIsConnected(false);
+    };
+  }, [auth?.userId, auth?.nickname]);
+
+  return { socket, isConnected };
 };
+
+export { useSocket };

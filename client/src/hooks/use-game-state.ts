@@ -1,67 +1,64 @@
-import { useEffect, useState } from 'react';
-import { type Socket } from 'socket.io-client';
-import { type GameStatus } from '../../../shared/types/game';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  type ClientToServerEvents,
-  type ServerToClientEvents,
-} from '../../../shared/types/ws-events';
-
-type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
+  type GameStateUpdatePayload,
+  type OpponentStateUpdatePayload,
+  type TimerTickPayload,
+} from '../../../shared/types';
+import { type TypedSocket } from '../lib/socket-client';
 
 interface UseGameStateReturn {
-  status: GameStatus;
-  elapsedTime: number;
-  score: number;
-  opponentScore: number;
-  result: 'win' | 'lose' | 'draw' | null;
+  myState: unknown;
+  opponentState: unknown;
+  myElapsedTime: number;
+  opponentElapsedTime: number;
+  reset: () => void;
 }
 
-export const useGameState = (socket: TypedSocket | null): UseGameStateReturn => {
-  const [status, setStatus] = useState<GameStatus>('idle');
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [score, setScore] = useState(0);
-  const [opponentScore, setOpponentScore] = useState(0);
-  const [result, setResult] = useState<'win' | 'lose' | 'draw' | null>(null);
+const useGameState = (socket: TypedSocket | null): UseGameStateReturn => {
+  const [myState, setMyState] = useState<unknown>(null);
+  const [opponentState, setOpponentState] = useState<unknown>(null);
+  const [myElapsedTime, setMyElapsedTime] = useState(0);
+  const [opponentElapsedTime, setOpponentElapsedTime] = useState(0);
 
   useEffect(() => {
     if (!socket) {
       return;
     }
 
-    const onStarted = () => {
-      setStatus('playing');
-      setElapsedTime(0);
+    const handleStateUpdate = (payload: GameStateUpdatePayload) => {
+      setMyState(payload.state);
+      setMyElapsedTime(payload.elapsedTime);
     };
 
-    const onTimerTick = ({ elapsedTime: time }: { elapsedTime: number }) => {
-      setElapsedTime(time);
+    const handleOpponentStateUpdate = (payload: OpponentStateUpdatePayload) => {
+      setOpponentState(payload.state);
+      setOpponentElapsedTime(payload.elapsedTime);
     };
 
-    const onResult = ({
-      result: r,
-      score: s,
-      opponentScore: os,
-    }: {
-      result: 'win' | 'lose' | 'draw';
-      score: number;
-      opponentScore: number;
-    }) => {
-      setResult(r);
-      setScore(s);
-      setOpponentScore(os);
-      setStatus(r === 'win' ? 'won' : 'lost');
+    const handleTimerTick = (payload: TimerTickPayload) => {
+      setMyElapsedTime(payload.myTime);
+      setOpponentElapsedTime(payload.opponentTime);
     };
 
-    socket.on('game:started', onStarted);
-    socket.on('game:timer-tick', onTimerTick);
-    socket.on('game:result', onResult);
+    socket.on('game:state-update', handleStateUpdate);
+    socket.on('game:opponent-state-update', handleOpponentStateUpdate);
+    socket.on('game:timer-tick', handleTimerTick);
 
     return () => {
-      socket.off('game:started', onStarted);
-      socket.off('game:timer-tick', onTimerTick);
-      socket.off('game:result', onResult);
+      socket.off('game:state-update', handleStateUpdate);
+      socket.off('game:opponent-state-update', handleOpponentStateUpdate);
+      socket.off('game:timer-tick', handleTimerTick);
     };
   }, [socket]);
 
-  return { status, elapsedTime, score, opponentScore, result };
+  const reset = useCallback(() => {
+    setMyState(null);
+    setOpponentState(null);
+    setMyElapsedTime(0);
+    setOpponentElapsedTime(0);
+  }, []);
+
+  return { myState, opponentState, myElapsedTime, opponentElapsedTime, reset };
 };
+
+export { useGameState };
