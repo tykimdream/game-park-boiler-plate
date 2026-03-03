@@ -11,11 +11,13 @@ Phase 1: 기획 → Phase 2: 디자인 & 에셋 → Phase 3: 개발 → Phase 4:
 
 ---
 
-## Phase 1: 기획 (Brainstorming)
+## Phase 1: 기획 (Brainstorming + SDD)
+
+> **SDD 원칙:** 스펙을 먼저 작성·승인한 후 개발을 시작한다. 게임 스펙이 승인되기 전에는 Phase 2로 넘어가지 않는다.
 
 **스킬:** `/brainstorming`
 
-**목적:** 아이디어 탐색 → 요구사항 정의 → 접근법 비교 → 디자인 승인
+**목적:** 아이디어 탐색 → 요구사항 정의 → 접근법 비교 → **게임 스펙 작성** → 디자인 승인
 
 **사용법:**
 ```
@@ -24,15 +26,21 @@ Claude Code에서:
 → brainstorming 스킬이 자동 시작
 → 질문-답변으로 요구사항 구체화
 → 2-3개 접근법 제안 및 비교
-→ 디자인 승인 후 문서화
+→ docs/templates/game-spec.md 템플릿을 채워 스펙 문서 생성
+→ 스펙 승인 후 Phase 2로 진행
 ```
 
-**산출물:** `docs/plans/YYYY-MM-DD-<topic>-design.md`
+**산출물:**
+- `docs/plans/YYYY-MM-DD-<game-name>-spec.md` — 게임 스펙 (7개 섹션)
+- `docs/plans/YYYY-MM-DD-<topic>-design.md` — 디자인 문서
+
+**가드레일:** 게임 스펙(`spec.md`)이 승인된 후에야 Phase 2로 넘어간다. 스펙 미승인 시 구현을 시작하지 않는다.
 
 **팁:**
 - 가능한 구체적으로 원하는 것을 설명
 - 솔로/멀티 여부, 게임 메카닉, 시각적 스타일 등을 미리 생각
 - 한 번에 완벽할 필요 없음 — 질문-답변으로 정제됨
+- 스펙 템플릿(`docs/templates/game-spec.md`)의 7개 섹션을 모두 채운다
 
 ---
 
@@ -141,8 +149,8 @@ Agent C: shared/ 타입 정의 (새 이벤트, 상태 타입)
 
 | Phase | 스킬 | 산출물 |
 |-------|------|--------|
-| 기획 | /brainstorming | design.md |
+| 기획 (SDD) | /brainstorming | spec.md + design.md |
 | 디자인 | /plan + MCP | plan.md + assets/ |
 | 개발 | /ultrawork | 코드 + 커밋 |
 | 검증 | /code-review | 리뷰 반영 |
-| 완료 | Git | PR |
+| 완료 | Git + /handoff | PR + HANDOFF.md |

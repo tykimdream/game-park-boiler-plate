@@ -45,8 +45,26 @@ __PROJECT_NAME__/
 > 2. lint + format 실행
 > 3. 에러 수정 후 반복
 
+## SDD (Spec Driven Development)
+
+스펙을 먼저 작성·승인한 후 코드를 작성한다.
+
+1. `/brainstorming`으로 아이디어 구체화
+2. `docs/templates/game-spec.md` 템플릿을 채워 스펙 문서 생성
+3. 스펙 승인 후 Phase 2(디자인 & 에셋)로 진행
+4. 상세 워크플로우: `docs/agent-workflow.md` 참조
+
+## 세션 관리
+
+`HANDOFF.md`로 세션 간 작업 컨텍스트를 유지한다.
+
+- **세션 시작:** `HANDOFF.md`가 있으면 읽고 이전 컨텍스트를 파악한다 (`/resume`)
+- **세션 종료:** 종료 신호 시 `HANDOFF.md`를 자동 갱신한다 (`/handoff`)
+- 상세 규칙: `.claude/rules/handoff.md` 참조
+
 **상세 규칙:** `.claude/rules/` 참조
 - `code-style.md` — 코드 스타일, TypeScript, React
 - `git-convention.md` — 브랜치, 커밋, 코멘트
 - `workflow.md` — 작업 프로토콜
 - `game-dev.md` — 게임 아키텍처
+- `handoff.md` — 세션 핸드오프
